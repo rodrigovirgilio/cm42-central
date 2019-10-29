@@ -1,4 +1,4 @@
-import { status, storyTypes } from "libs/beta/constants";
+import { status, storyTypes, storyScopes } from "libs/beta/constants";
 import httpService from '../../services/httpService';
 import changeCase from 'change-object-case';
 import * as Label from './label';
@@ -36,9 +36,7 @@ export const compareStartedAt = (a, b) => {
   return compareValues(a.startedAt, b.startedAt);
 };
 
-export const isUnestimatedFeature = story => {
-  return (story.estimate === null || story.estimate === '') && story.storyType === storyTypes.FEATURE;
-};
+export const isUnestimatedFeature = story => !hasEstimate(story) && isFeature(story)
 
 export const isFeature = story => {
   return story.storyType === storyTypes.FEATURE;
@@ -55,6 +53,11 @@ export const isUnstarted = story => {
 export const isAccepted = story => {
   return story.state === status.ACCEPTED;
 };
+
+export const totalPoints = stories => 
+  stories.reduce((total, current) => total + getPoints(current), 0)
+
+export const isHighlighted = story => Boolean(story.highlighted)
 
 export const getPoints = story =>
   isFeature(story)
@@ -82,7 +85,7 @@ export const releaseIsLate = (story) => {
 }
 
 export const possibleStatesFor = story => 
-  isUnestimatedFeature(story) ? states : [states[0]];
+  isUnestimatedFeature(story._editing) ? [states[0]] : states;
 
 export const types = ['feature', 'bug', 'release', 'chore'];
 
@@ -122,6 +125,14 @@ export const updateStory = (story, newAttributes) => ({
   ...story,
   ...newAttributes
 });
+
+export const search = async (queryParam, projectId) => {
+  const { data } = await httpService
+    .get(`/projects/${projectId}/stories?q=${queryParam}`, {
+      timeout: 1500
+    })
+  return data.map(item => deserialize(item.story));
+}
 
 export const getHistory = async (storyId, projectId) => {
   const { data } = await httpService
@@ -296,6 +307,20 @@ export const createNewStory = (stories, storyAttributes) => {
     _editing: newStory
   };
 };
+
+export const withScope = (stories, from) => 
+  Boolean(from) ? stories[from] : stories[storyScopes.ALL];
+
+export const isSearch = from => from === storyScopes.SEARCH;
+
+export const haveHighlightButton = (stories, story, from) =>
+  isSearch(from) && haveStory(story, stories)
+
+export const haveSearch = stories =>
+  Boolean(stories[storyScopes.SEARCH].length)
+
+export const haveStory = (story, stories) =>
+  stories.some(item => item.id === story.id)
 
 export const isNew = (story) =>
   story.id === null;
