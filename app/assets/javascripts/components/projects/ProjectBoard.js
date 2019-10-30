@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { fetchProjectBoard } from "actions/projectBoard";
 import { fetchPastStories } from "actions/pastIterations";
@@ -21,42 +21,51 @@ import SearchResults from './../search/SearchResults';
 import ProjectLoading from './ProjectLoading';
 import { DragDropContext } from 'react-beautiful-dnd'
 
-export class ProjectBoard extends React.Component {
-  componentWillMount() {
-    this.props.fetchProjectBoard(this.props.projectId);
-  }
+const ProjectBoard = ({ projectId,
+  createStory,
+  closeHistory,
+  notifications,
+  removeNotification,
+  history,
+  projectBoard,
+  fetchProjectBoard,
+  dragDropStory,
+  chillyBinStories,
+  backlogSprints,
+  doneSprints,
+  fetchPastStories
+}) => {
 
-  calculatePosition = (aboveStory, bellowStory) => {
+  useEffect(() => {
+    fetchProjectBoard(projectId);
+  }, [])
+
+  const calculatePosition = (aboveStory, bellowStory) => {
     if (bellowStory === undefined) return (Number(aboveStory.position) + 1)
     if (aboveStory === undefined) return (Number(bellowStory.position) - 1);
     return (Number(bellowStory.position) + Number(aboveStory.position)) / 2;
   }
 
-  getNewPosition = (destinatitonIndex, sourceIndex, storiesArray, isSameColumn) => {
+  const getNewPosition = (destinatitonIndex, sourceIndex, storiesArray, isSameColumn) => {
     if (!isSameColumn) {
-      return this.calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex])
+      return calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex])
     }
     if (sourceIndex > destinatitonIndex) {
-      return this.calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex]);
+      return calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex]);
     }
-    return this.calculatePosition(storiesArray[destinatitonIndex], storiesArray[destinatitonIndex + 1]);
+    return calculatePosition(storiesArray[destinatitonIndex], storiesArray[destinatitonIndex + 1]);
   }
 
-  getArray = column => {
-    const { chillyBinStories, backlogSprints } = this.props;
-    return column === 'chillyBin' ? chillyBinStories : backlogSprints[0].stories;
-  }
+  const getArray = column => column === 'chillyBin' ? chillyBinStories : backlogSprints[0].stories;
 
-  getState = column => column === 'chillyBin' ? Story.status.UNSCHEDULED : Story.status.UNSTARTED
 
-  isSameColumn = (sourceColumn, destinationColumn) => sourceColumn === destinationColumn
+  const getState = column => column === 'chillyBin' ? Story.status.UNSCHEDULED : Story.status.UNSTARTED
 
-  onDragEnd = result => {
+  const onDragEnd = result => {
     const { destination, source } = result;
-    const { dragDropStory } = this.props;
-    const destinationArray = this.getArray(destination.droppableId); // stories of destination column
-    const sourceArray = this.getArray(source.droppableId); // stories of source column
-    const isSameColumn = this.isSameColumn(source.droppableId, destination.droppableId);
+    const destinationArray = getArray(destination.droppableId); // stories of destination column
+    const sourceArray = getArray(source.droppableId); // stories of source column
+    const isSameColumn = source.droppableId === destination.droppableId;
     const dragStory = sourceArray[source.index];
 
     if (!destination) {
@@ -67,7 +76,7 @@ export class ProjectBoard extends React.Component {
       return;
     }
 
-    const newPosition = this.getNewPosition(destination.index, source.index, destinationArray, isSameColumn);
+    const newPosition = getNewPosition(destination.index, source.index, destinationArray, isSameColumn);
 
     // Moving to same column
     if (isSameColumn) {
@@ -76,96 +85,84 @@ export class ProjectBoard extends React.Component {
     }
 
     // Moving to a different column
-    const newState = this.getState(destination.droppableId);
+    const newState = getState(destination.droppableId);
     dragDropStory(dragStory.id, dragStory.projectId, { position: newPosition, state: newState });
     return;
   }
-
-  render() {
-    if (!this.props.projectBoard.isFetched) {
-      return <ProjectLoading data-id="project-loading" />;
-    }
-
-    const {
-      projectId,
-      createStory,
-      closeHistory,
-      notifications,
-      removeNotification,
-      history,
-      projectBoard
-    } = this.props;
-
-    return (
-      <DragDropContext onDragEnd={this.onDragEnd}>
-        <div className="ProjectBoard">
-          <StorySearch projectId={projectId} loading={projectBoard.search.loading} />
-
-          <Notifications
-            notifications={notifications}
-            onRemove={removeNotification}
-          />
-
-          <Column title={I18n.t("projects.show.chilly_bin")}
-            renderAction={() =>
-              <AddStoryButton
-                onAdd={() => createStory({
-                  state: Story.status.UNSCHEDULED
-                })}
-              />
-            }
-            columnId={'chillyBin'}
-          >
-            <Stories stories={this.props.chillyBinStories} columnId={'chillyBin'} />
-          </Column>
-
-          <Column
-            title={`${I18n.t("projects.show.backlog")} /
-          ${I18n.t("projects.show.in_progress")}`}
-            renderAction={() =>
-              <AddStoryButton
-                onAdd={() => createStory({
-                  state: Story.status.UNSTARTED
-                })}
-              />}
-            columnId={'backlog'}
-
-          >
-            <Sprints
-              sprints={this.props.backlogSprints}
-              columnId='backlog'
-            />
-          </Column>
-
-          <Column
-            title={I18n.t("projects.show.done")}
-            columnId={'done'}
-          >
-            <Sprints
-              sprints={this.props.doneSprints}
-              fetchStories={this.props.fetchPastStories}
-              columnId={'done'}
-            />
-          </Column>
-
-          <SearchResults />
-
-          {
-            history.status !== 'DISABLED' &&
-            <Column
-              onClose={closeHistory}
-              title={[I18n.t("projects.show.history"), "'", history.storyTitle, "'"].join(' ')}
-            >
-              {history.status === 'LOADED'
-                ? <History history={history.activities} />
-                : <div className="loading">Loading...</div>
-              }
-            </Column>
-          }
-        </div>
-      </DragDropContext>
-    );
+  
+  if (!projectBoard.isFetched) {
+    return <b>{I18n.t('loading')}</b>;
   }
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="ProjectBoard">
+        <StorySearch projectId={projectId} loading={projectBoard.search.loading} />
+
+        <Notifications
+          notifications={notifications}
+          onRemove={removeNotification}
+        />
+
+        <Column title={I18n.t("projects.show.chilly_bin")}
+          renderAction={() =>
+            <AddStoryButton
+              onAdd={() => createStory({
+                state: Story.status.UNSCHEDULED
+              })}
+            />
+          }
+          columnId={'chillyBin'}
+        >
+          <Stories stories={chillyBinStories} columnId={'chillyBin'} />
+        </Column>
+
+        <Column
+          title={`${I18n.t("projects.show.backlog")} /
+          ${I18n.t("projects.show.in_progress")}`}
+          renderAction={() =>
+            <AddStoryButton
+              onAdd={() => createStory({
+                state: Story.status.UNSTARTED
+              })}
+            />}
+          columnId={'backlog'}
+
+        >
+          <Sprints
+            sprints={backlogSprints}
+            columnId='backlog'
+          />
+        </Column>
+
+        <Column
+          title={I18n.t("projects.show.done")}
+          columnId={'done'}
+        >
+          <Sprints
+            sprints={doneSprints}
+            fetchStories={fetchPastStories}
+            columnId={'done'}
+          />
+        </Column>
+
+        <SearchResults />
+
+        {
+          history.status !== 'DISABLED' &&
+          <Column
+            onClose={closeHistory}
+            title={[I18n.t("projects.show.history"), "'", history.storyTitle, "'"].join(' ')}
+          >
+            {history.status === 'LOADED'
+              ? <History history={history.activities} />
+              : <div className="loading">Loading...</div>
+            }
+          </Column>
+        }
+      </div>
+    </DragDropContext>
+  );
 }
 
 ProjectBoard.propTypes = {
