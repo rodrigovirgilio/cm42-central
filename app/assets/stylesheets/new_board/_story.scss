@@ -54,6 +54,10 @@
         }
       }
 
+      &.Story--isDragging {
+        opacity: 0.8;
+      }
+
       .Story {
         &__description-icon {
           display: flex;

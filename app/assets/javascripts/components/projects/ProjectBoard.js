@@ -59,7 +59,10 @@ const ProjectBoard = ({
 
   const onDragEnd = ({ destination, source }) => {
     const isSameColumn = source.droppableId === destination.droppableId;
-    const getArray = column => column === 'chillyBin' ? newChillyBinStories : newBacklogSprints[0].stories;
+    const getArray = column =>
+      column === 'chillyBin'
+        ? newChillyBinStories
+        : newBacklogSprints[0].stories;
     const destinationArray = getArray(destination.droppableId); // stories of destination column
     const sourceArray = getArray(source.droppableId); // stories of source column
     const dragStory = sourceArray[source.index];
@@ -72,22 +75,43 @@ const ProjectBoard = ({
       return;
     }
 
-    const newPosition = getNewPosition(destination.index, source.index, destinationArray, isSameColumn, dragStory.storyType);
+    const newPosition = getNewPosition(
+      destination.index,
+      source.index,
+      destinationArray,
+      isSameColumn,
+      dragStory.storyType,
+    );
 
     // Changing the column array order
     if (destination.droppableId === 'chillyBin') {
-      setNewChillyBinStories(moveTask(sourceArray, destinationArray, source.index, destination.index));
+      setNewChillyBinStories(
+        moveTask(
+          sourceArray,
+          destinationArray,
+          source.index,
+          destination.index,
+        ),
+      );
     }
 
     if (destination.droppableId === 'backlog') {
-      const newStories = moveTask(sourceArray, destinationArray, source.index, destination.index);
+      const newStories = moveTask(
+        sourceArray,
+        destinationArray,
+        source.index,
+        destination.index,
+      );
       setNewBacklogSprints(getNewSprints(newStories, newBacklogSprints));
     }
 
-    // Persisting the new array order 
+    // Persisting the new array order
     const newState = getNewState(destination.droppableId);
-    return dragDropStory(dragStory.id, dragStory.projectId, { position: newPosition, state: newState });
-  }
+    return dragDropStory(dragStory.id, dragStory.projectId, {
+      position: newPosition,
+      state: newState,
+    });
+  };
 
   if (!projectBoard.isFetched) {
     return <b>{I18n.t('loading')}</b>;
