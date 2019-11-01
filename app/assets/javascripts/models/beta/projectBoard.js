@@ -3,7 +3,7 @@ import changeCase from 'change-object-case';
 import * as Story from './story';
 import * as Project from './project';
 import PropTypes from 'prop-types';
-import { operands } from './../../libs/beta/constants';
+import { operands, status } from './../../libs/beta/constants';
 
 export const get = async (projectId) => {
   const { data } = await httpService
@@ -53,10 +53,42 @@ export const translateWord = (operand, word, translations) =>
     ? word
     : I18n.t(`story.${operand}.${translations[word] || word}`, { locale: I18n.defaultLocale });
 
-const translatedOperands = ['type','state'];
+const translatedOperands = ['type', 'state'];
 
 export const haveTranslation = operand => translatedOperands.includes(operand)
 
 export const isEnglishLocale = () => currentLocale() === 'en';
 
 const currentLocale = () => I18n.currentLocale();
+
+// Drag And drop utils
+
+const calculatePosition = (aboveStory, bellowStory) => {
+  if (bellowStory === undefined) return (Number(aboveStory.position) + 1);
+  if (aboveStory === undefined) return (Number(bellowStory.position) - 1);
+  return (Number(bellowStory.position) + Number(aboveStory.position)) / 2;
+}
+
+export const getNewPosition = (destinatitonIndex, sourceIndex, storiesArray, isSameColumn, storyType) => {
+  //TODO: remove this second condition later
+  if (!isSameColumn && storyType !== 'feature') {
+    return calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex]);
+  }
+  if (sourceIndex > destinatitonIndex) {
+    return calculatePosition(storiesArray[destinatitonIndex - 1], storiesArray[destinatitonIndex]);
+  }
+  return calculatePosition(storiesArray[destinatitonIndex], storiesArray[destinatitonIndex + 1]);
+}
+
+// reorder the array
+export const moveTask = (sourceArray, destinationArray, sourceIndex, destinationIndex) => {
+  const newSourceArray = sourceArray;
+  const [removed] = newSourceArray.splice(sourceIndex, 1);
+  const newDestinationArray = destinationArray;
+  newDestinationArray.splice(destinationIndex, 0, removed);
+  return [...newDestinationArray];
+}
+
+export const getNewSprints = (newStories, sprints) => sprints.map((sprint, index) => index === 0 ? { ...sprint, stories: newStories } : sprint);
+
+export const getNewState = column => column === 'chillyBin' ? status.UNSCHEDULED : status.UNSTARTED;
