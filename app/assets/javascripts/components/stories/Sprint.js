@@ -69,6 +69,7 @@ class Sprint extends Component {
       completedPoints
     } = this.props.sprint;
     const { isClosed } = this.state;
+    const { sprintIndex, columnId } = this.props
     const closedStyle = isClosed && "Sprint__body--is-collapsed";
 
     return (
@@ -84,7 +85,7 @@ class Sprint extends Component {
           isClosed={isClosed}
         />
         <div className={`Sprint__body ${closedStyle}`}>
-          {stories && <Stories stories={stories} />}
+          {stories && <Stories stories={stories} columnId={columnId} sprintIndex={sprintIndex} />}
         </div>
       </div>
     );

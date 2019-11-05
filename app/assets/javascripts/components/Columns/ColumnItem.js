@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Droppable } from 'react-beautiful-dnd'
+import { Droppable } from 'react-beautiful-dnd';
 
 const Column = ({ title, children, renderAction, onClose, columnId }) => (
-  <Droppable droppableId={columnId} isDropDisabled={columnId === 'done'}>
+  <Droppable droppableId={JSON.stringify({ columnId })} isDropDisabled={columnId === 'done'}>
     {provided => (
       <div className="Column" ref={provided.innerRef} {...provided.droppableProps}>
         <div className="Column__header">
