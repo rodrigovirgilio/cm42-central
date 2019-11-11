@@ -85,7 +85,7 @@ class Sprint extends Component {
           isClosed={isClosed}
         />
         <div className={`Sprint__body ${closedStyle}`}>
-          {stories && <Stories stories={stories} columnId={columnId} sprintIndex={sprintIndex} />}
+          <Stories stories={stories} columnId={columnId} sprintIndex={sprintIndex} />
         </div>
       </div>
     );

@@ -60,7 +60,6 @@ const ProjectBoard = ({
   }, []);
 
   const onDragEnd = ({ source, destination, draggableId }) => {
-    debugger;
     const { sprintIndex: sprintDropIndex, columnId: dropColumn } = JSON.parse(destination.droppableId);
     const { sprintIndex: sprintDragIndex, columnId: dragColumn } = JSON.parse(source.droppableId);
     const isSameColumn = dragColumn === dropColumn;
