@@ -36,7 +36,7 @@ const renderSprints = (sprints, fetchStories, columnId) => {
 
 const Sprints = ({ sprints, fetchStories, columnId }) => {
   return (
-    <div className='Sprints' data-cy={!columnId ? 'sprints' : null}>
+    <div className='Sprints'>
       {sprints.length === 0
         ? droppableContainer(sprints, fetchStories, columnId)
         : renderSprints(sprints, fetchStories, columnId)

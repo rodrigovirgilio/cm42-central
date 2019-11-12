@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Droppable } from 'react-beautiful-dnd';
 
 const Column = ({ title, children, renderAction, onClose, columnId }) => (
-  <div className="Column">
+  <div className="Column" data-cy="column">
     <div className="Column__header">
       <h3 className="Column__name">{title}</h3>
       <div className="Column__actions">
