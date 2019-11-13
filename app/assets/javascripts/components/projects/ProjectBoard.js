@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
+import { DragDropContext } from 'react-beautiful-dnd';
 import { fetchProjectBoard } from "actions/projectBoard";
 import { fetchPastStories } from "actions/pastIterations";
 import Column from "../Columns/ColumnItem";
@@ -27,7 +28,6 @@ import { removeNotification } from '../../actions/notifications';
 import StorySearch from '../search/StorySearch';
 import SearchResults from './../search/SearchResults';
 import ProjectLoading from './ProjectLoading';
-import { DragDropContext } from 'react-beautiful-dnd';
 
 const ProjectBoard = ({
   projectId,
@@ -62,22 +62,24 @@ const ProjectBoard = ({
   const onDragEnd = ({ source, destination, draggableId }) => {
     const { sprintIndex: sprintDropIndex, columnId: dropColumn } = JSON.parse(destination.droppableId);
     const { sprintIndex: sprintDragIndex, columnId: dragColumn } = JSON.parse(source.droppableId);
+    const { index: sourceIndex } = source;
+    const { index: destinationIndex} = destination;
     const isSameColumn = dragColumn === dropColumn;
     const destinationArray = getArray(dropColumn, newBacklogSprints, newChillyBinStories, sprintDropIndex); // stories of destination column
     const sourceArray = getArray(dragColumn, newBacklogSprints, newChillyBinStories, sprintDragIndex); // stories of source column
-    const dragStory = sourceArray[source.index];
+    const dragStory = sourceArray[sourceIndex];
 
     if (!destination) {
       return;
     }
 
-    if (isSameColumn && source.index === destination.index) {
+    if (isSameColumn && sourceIndex === destinationIndex) {
       return;
     }
 
     const newPosition = getNewPosition(
-      destination.index,
-      source.index,
+      destinationIndex,
+      sourceIndex,
       destinationArray,
       isSameColumn,
       dragStory.storyType,
@@ -86,8 +88,8 @@ const ProjectBoard = ({
     const newStories = moveTask(
       sourceArray,
       destinationArray,
-      source.index,
-      destination.index,
+      sourceIndex,
+      destinationIndex,
     );
 
     // Changing the column array order
@@ -129,9 +131,8 @@ const ProjectBoard = ({
               })}
             />
           }
-          columnId={'chillyBin'}
         >
-          <Stories stories={newChillyBinStories} columnId={'chillyBin'} />
+          <Stories stories={newChillyBinStories} columnId='chillyBin' />
         </Column>
 
         <Column
@@ -143,7 +144,6 @@ const ProjectBoard = ({
                 state: Story.status.UNSTARTED
               })}
             />}
-          columnId={'backlog'}
         >
           <Sprints
             sprints={newBacklogSprints}
@@ -153,12 +153,11 @@ const ProjectBoard = ({
 
         <Column
           title={I18n.t("projects.show.done")}
-          columnId={'done'}
         >
           <Sprints
             sprints={doneSprints}
             fetchStories={fetchPastStories}
-            columnId={'done'}
+            columnId='done'
           />
         </Column>
 

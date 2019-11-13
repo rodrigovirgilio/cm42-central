@@ -241,7 +241,6 @@ describe('ProjectBoard model', () => {
         console.log(sourceArray)
         it('returns a new array', () => {
           newDestArray = ProjectBoard.moveTask(sourceArray, sourceArray, sourceIndex, destinationIndex);
-          expect(newDestArray).toBeTruthy();
           expect(newDestArray[1].story).toEqual('source1');
         });
       });
@@ -251,9 +250,7 @@ describe('ProjectBoard model', () => {
         const destinationIndex = 1;
         it('returns a new array', () => {  
           newDestArray = ProjectBoard.moveTask(sourceArray, destinationArray, sourceIndex, destinationIndex);
-          expect(newDestArray).toBeTruthy();
           expect(newDestArray[1].story).toEqual('source1');
-          expect(newDestArray[0].story).toEqual('dest1');
         });
       });
     });
