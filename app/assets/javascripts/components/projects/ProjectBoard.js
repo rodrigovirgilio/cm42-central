@@ -57,7 +57,7 @@ const ProjectBoard = ({
 
   useEffect(() => {
     fetchProjectBoard(projectId);
-  }, []);
+  }, [fetchProjectBoard, projectId]);
 
   const onDragEnd = ({ source, destination, draggableId }) => {
     const { sprintIndex: sprintDropIndex, columnId: dropColumn } = JSON.parse(destination.droppableId);

@@ -11,11 +11,10 @@ const defaultProps = {
   sprints: [],
 };
 
-const droppableContainer = (sprints, fetchStories, columnId) => (
+const droppableContainer = columnId => (
   <Droppable droppableId={JSON.stringify({columnId, sprintIndex: 0})} isDropDisabled={columnId === 'done'}>
     {provided => (
       <div className='Sprints' ref={provided.innerRef} {...provided.droppableProps}>
-        {renderSprints(sprints, fetchStories, columnId)}
         {provided.placeholder}
       </div>
     )}
@@ -38,7 +37,7 @@ const Sprints = ({ sprints, fetchStories, columnId }) => {
   return (
     <div className='Sprints'>
       {sprints.length === 0
-        ? droppableContainer(sprints, fetchStories, columnId)
+        ? droppableContainer(columnId)
         : renderSprints(sprints, fetchStories, columnId)
       }
     </div>
