@@ -129,7 +129,7 @@ class Project < ApplicationRecord
 
   validates :point_scale, inclusion: { in: POINT_SCALES.keys,
                                        message: '%{value} is not a valid estimation scheme' }
-  
+
   validates :iteration_length,
     numericality: { greater_than_or_equal_to: ITERATION_LENGTH_RANGE.min,
                     less_than_or_equal_to: ITERATION_LENGTH_RANGE.max, only_integer: true,
@@ -146,10 +146,6 @@ class Project < ApplicationRecord
 
   scope :not_archived, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
-
-  def csv_filename
-    "#{name}-#{Time.current.strftime('%Y%m%d_%I%M')}.csv"
-  end
 
   def last_changeset_id
     changesets.last&.id
