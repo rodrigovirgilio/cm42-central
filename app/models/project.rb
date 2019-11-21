@@ -123,6 +123,34 @@ class Project < ApplicationRecord
     "#{name}-#{Time.current.strftime('%Y%m%d_%I%M')}.csv"
   end
 
+  accepts_nested_attributes_for :users, reject_if: :all_blank
+  # These are the valid point scales for a project. These represent
+  # the set of valid points estimate values for a story in this project.
+
+  validates :point_scale, inclusion: { in: POINT_SCALES.keys,
+                                       message: '%{value} is not a valid estimation scheme' }
+  
+  validates :iteration_length,
+    numericality: { greater_than_or_equal_to: ITERATION_LENGTH_RANGE.min,
+                    less_than_or_equal_to: ITERATION_LENGTH_RANGE.max, only_integer: true,
+                    message: 'must be between 1 and 4 weeks' }
+
+  validates :iteration_start_day,
+    numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 6,
+                    only_integer: true, message: 'must be an integer between 0 and 6' }
+
+  validates :name, presence: true
+
+  validates :default_velocity, numericality: { greater_than: 0,
+                                               only_integer: true }
+
+  scope :not_archived, -> { where(archived_at: nil) }
+  scope :archived, -> { where.not(archived_at: nil) }
+
+  def csv_filename
+    "#{name}-#{Time.current.strftime('%Y%m%d_%I%M')}.csv"
+  end
+
   def last_changeset_id
     changesets.last&.id
   end
